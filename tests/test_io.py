@@ -88,6 +88,10 @@ class IoTests(unittest.TestCase):
             '"c": "'
         ))
 
+    def test_number_context_ends_at_colon(self) -> None:
+        context = build_context("P\n", "fn", {}, "a", False)
+        self.assertTrue(context.endswith('"parameters": {"a":'))
+
 
 if __name__ == "__main__":
     unittest.main()

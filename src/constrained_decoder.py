@@ -29,6 +29,7 @@ class TokenSets(BaseModel):
     id_to_token: Dict[int, str]
     text_to_ids: Dict[str, List[int]]
     number_ids: List[int]
+    spaced_number_ids: List[int]
     stop_ids: List[int]
     stop_set: Set[int]
     quote_ids: List[int]
@@ -115,6 +116,7 @@ def precompute_token_sets(id_to_token: Dict[int, str]) -> TokenSets:
     """
     text_to_ids: Dict[str, List[int]] = {}
     number_ids: List[int] = []
+    spaced_number_ids: List[int] = []
     stop_ids: List[int] = []
     quote_ids: List[int] = []
     free_ids: List[int] = []
@@ -131,6 +133,8 @@ def precompute_token_sets(id_to_token: Dict[int, str]) -> TokenSets:
             quote_ids.append(tid)
         if all(c in NUMBER_CHARS for c in text):
             number_ids.append(tid)
+        elif text[0] == " " and all(c in NUMBER_CHARS for c in text[1:]):
+            spaced_number_ids.append(tid)
         if _has_unusable_char(text):
             continue
         if scan_token(text, False)[0]:
@@ -142,6 +146,7 @@ def precompute_token_sets(id_to_token: Dict[int, str]) -> TokenSets:
         id_to_token=id_to_token,
         text_to_ids=text_to_ids,
         number_ids=number_ids,
+        spaced_number_ids=spaced_number_ids,
         stop_ids=stop_ids,
         stop_set=set(stop_ids),
         quote_ids=quote_ids,
@@ -215,7 +220,9 @@ def generate_number(
     """Generate a JSON number token by token.
 
     Only tokens that keep the text a valid prefix of a number are allowed,
-    and the value can only be ended once it is a complete number.
+    and the value can only be ended once it is a complete number. The
+    context ends right after the colon, so the first token may carry the
+    space that follows it (``" -"`` is how the model writes a negative).
 
     Args:
         get_logits: Function returning next-token logits for token ids.
@@ -237,6 +244,11 @@ def generate_number(
             tid for tid in sets.number_ids
             if partial.match(current + sets.id_to_token[tid])
         ]
+        if len(ids) == len(input_ids):
+            valid.extend(
+                tid for tid in sets.spaced_number_ids
+                if partial.match(sets.id_to_token[tid][1:])
+            )
         can_stop = complete.match(current) is not None
         if can_stop:
             valid.extend(sets.stop_ids)
@@ -245,7 +257,7 @@ def generate_number(
         token_id = select_token(mask_logits(get_logits(ids), valid))
         if can_stop and token_id in sets.stop_set:
             break
-        current += sets.id_to_token[token_id]
+        current += sets.id_to_token[token_id].lstrip(" ")
         ids.append(token_id)
     return current
 

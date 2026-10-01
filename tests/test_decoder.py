@@ -19,7 +19,7 @@ VOCAB: Dict[int, str] = {
     0: "1", 1: "2", 2: ".", 3: "-", 4: ",", 5: "}", 6: '"', 7: '",',
     8: "a", 9: "\\", 10: "d", 11: "n", 12: "fn", 13: "_add",
     14: "_numbers", 15: "_greet", 16: "true", 17: "false", 18: "\n",
-    19: "hello", 20: "\\\\",
+    19: "hello", 20: "\\\\", 21: " -", 22: " ",
 }
 BASE = 3
 
@@ -85,6 +85,17 @@ class DecoderTests(unittest.TestCase):
         text = generate_number(scripted([0, 2, 1, 4]), [0, 0, 0], self.sets,
                                integer=True)
         self.assertNotIn(".", text)
+
+    def test_number_first_token_may_carry_the_space(self) -> None:
+        text = generate_number(scripted([21, 0, 4]), [0, 0, 0], self.sets)
+        self.assertEqual(text, "-1")
+        text = generate_number(scripted([22, 1, 4]), [0, 0, 0], self.sets)
+        self.assertEqual(text, "2")
+
+    def test_spaced_number_token_only_first(self) -> None:
+        text = generate_number(scripted([0, 21, 4]), [0, 0, 0], self.sets)
+        self.assertNotIn("-", text)
+        self.assertNotIn(" ", text)
 
     def test_parse_number(self) -> None:
         self.assertEqual(parse_number("265", False), 265.0)

@@ -83,13 +83,15 @@ def build_context(
         f"{json.dumps(k)}: {json.dumps(v, ensure_ascii=False)}"
         for k, v in done.items()
     ]
-    parts.append(f"{json.dumps(next_param)}: ")
+    # Numbers and booleans start right after the colon: the model writes the
+    # space together with the value (" -" for a negative number).
+    parts.append(f"{json.dumps(next_param)}:")
     text = (
         prompt_text
         + '{"name": ' + json.dumps(function_name)
         + ', "parameters": {' + ", ".join(parts)
     )
-    return text + '"' if next_is_string else text
+    return text + ' "' if next_is_string else text
 
 
 def generate_value(
@@ -122,9 +124,9 @@ def generate_value(
         return generate_string(get_logits, input_ids, sets)
     if param.type == "boolean":
         word = generate_choice(
-            get_logits, input_ids, ["true", "false"], sets, sets.stop_ids
+            get_logits, input_ids, [" true", " false"], sets, sets.stop_ids
         )
-        return word == "true"
+        return word == " true"
     raise ValueError(f"unsupported parameter type {param.type!r}")
 
 

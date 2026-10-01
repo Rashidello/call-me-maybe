@@ -9,6 +9,7 @@ llm_sdk = { path = "llm_sdk/llm_sdk", editable = true}
 
 [tool.mypy]
 exclude = '''(^|/)(\.venv|llm_sdk|data)/'''
+mypy_path = "llm_sdk/llm_sdk"
 
 [dependency-groups]
 dev = [

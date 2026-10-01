@@ -78,6 +78,10 @@ def run() -> int:
     except Exception as exc:
         print(f"Error: cannot load the model or its vocabulary: {exc}",
               file=sys.stderr)
+        print("Hint: the first run downloads about 1.5 GB. Check the "
+              "network connection and the free disk space of the "
+              "Hugging Face cache (set HF_HOME to move it).",
+              file=sys.stderr)
         return 1
     sets = precompute_token_sets(id_to_token)
     print(f"Model ready in {time.perf_counter() - start:.1f}s, "
