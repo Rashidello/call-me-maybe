@@ -1,0 +1,17 @@
+[project]
+name = "callmemaybe"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pydantic", "llm_sdk", "accelerate"]
+
+[tool.uv.sources]
+llm_sdk = { path = "llm_sdk/llm_sdk", editable = true}
+
+[tool.mypy]
+exclude = '''(^|/)(\.venv|llm_sdk|data)/'''
+
+[dependency-groups]
+dev = [
+    "flake8",
+    "mypy"
+]

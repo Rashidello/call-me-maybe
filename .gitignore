@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.mypy_cache/
+.venv/
+data/output/
+*.egg-info/
+dist/
+build/
+*.zip
+*.pdf
+subject_text.txt
