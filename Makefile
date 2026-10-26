@@ -2,18 +2,17 @@ SHELL := /bin/bash
 UV := uv
 ARGS ?=
 
-# 42 machines have a small home quota: the model (1.5 GB) and the uv cache
-# go to /goinfre when it exists. Values already set in the environment win.
 GOINFRE := /goinfre/$(USER)
 ifneq ($(wildcard $(GOINFRE)),)
 export HF_HOME ?= $(GOINFRE)/.cache/huggingface
 export UV_CACHE_DIR ?= $(GOINFRE)/.cache/uv
+export UV_PROJECT_ENVIRONMENT ?= $(GOINFRE)/venvs/$(notdir $(CURDIR))
 endif
+VENV := $(or $(UV_PROJECT_ENVIRONMENT),.venv)
 
 .DEFAULT_GOAL := run
 .PHONY: install run debug test clean fclean lint lint-strict
 
-# Installs uv (Ubuntu: no apt package, use the official installer) if missing.
 install:
 	@command -v $(UV) >/dev/null 2>&1 || { \
 		echo "uv not found, installing it for the current user..."; \
@@ -39,7 +38,7 @@ clean:
 	rm -rf data/output
 
 fclean: clean
-	rm -rf .venv
+	rm -rf .venv $(VENV)
 
 lint:
 	$(UV) run flake8 .
